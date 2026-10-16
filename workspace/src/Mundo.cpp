@@ -159,6 +159,17 @@ void CMundo::OnTimer(int value)
                 write(fd_logger, cad, strlen(cad));
 	}
 
+        if (puntos1 >= 3 || puntos2 >= 3)
+        {
+                char cad[100];
+                if (puntos1 >= 3)
+                        sprintf(cad, "Jugador 1 gana la partida %d a %d.\n", puntos1, puntos2);
+                else
+                        sprintf(cad, "Jugador 2 gana la partida %d a %d.\n", puntos2, puntos1);
+                write(fd_logger, cad, strlen(cad));
+
+                exit(0);
+        }
 }
 
 void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
