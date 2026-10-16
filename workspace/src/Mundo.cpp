@@ -5,6 +5,11 @@
 #include "Mundo.h"
 #include "glut.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,7 +26,7 @@ CMundo::CMundo()
 
 CMundo::~CMundo()
 {
-
+        close(fd_logger); 
 }
 
 void CMundo::InitGL()
@@ -135,6 +140,10 @@ void CMundo::OnTimer(int value)
 		esfera.velocidad.x=2+2*rand()/(float)RAND_MAX;
 		esfera.velocidad.y=2+2*rand()/(float)RAND_MAX;
 		puntos2++;
+                
+                char cad[100];
+                sprintf(cad, "Jugador 2 marca 1 punto, lleva un total de %d puntos.\n", puntos2);
+                write(fd_logger, cad, strlen(cad));
 	}
 
 	if(fondo_dcho.Rebota(esfera))
@@ -144,6 +153,10 @@ void CMundo::OnTimer(int value)
 		esfera.velocidad.x=-2-2*rand()/(float)RAND_MAX;
 		esfera.velocidad.y=-2-2*rand()/(float)RAND_MAX;
 		puntos1++;
+
+                char cad[100];
+                sprintf(cad, "Jugador 1 marca 1 punto, lleva un total de %d puntos.\n", puntos1);
+                write(fd_logger, cad, strlen(cad));
 	}
 
 }
@@ -192,4 +205,14 @@ void CMundo::Init()
 	jugador2.g=0;
 	jugador2.x1=6;jugador2.y1=-1;
 	jugador2.x2=6;jugador2.y2=1;
+      
+        puntos1 = 0;
+        puntos2 = 0;
+
+        fd_logger = open("/tmp/FIFO_LOGGER", O_WRONLY);
+        if (fd_logger < 0) {
+                perror("No puede abrirse el FIFO");
+                exit(1);
+        
+        }
 }
