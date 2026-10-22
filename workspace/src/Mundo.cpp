@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,7 +27,9 @@ CMundo::CMundo()
 
 CMundo::~CMundo()
 {
-        close(fd_logger); 
+        close(fd_logger);
+        munmap(pdatos, sizeof(DatosMemCompartida));
+        unlink("/tmp/DATOS_BOT");
 }
 
 void CMundo::InitGL()
@@ -80,16 +83,16 @@ void print(char *mensaje, int x, int y, float r, float g, float b)
 }
 void CMundo::OnDraw()
 {
-	//Borrado de la pantalla	
+	//Borrado de la pantalla
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Para definir el punto de vista
-	glMatrixMode(GL_MODELVIEW);	
+	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	
+
 	gluLookAt(0.0, 0, 17,  // posicion del ojo
-		0.0, 0.0, 0.0,      // hacia que punto mira  (0,0,0) 
-		0.0, 1.0, 0.0);      // definimos hacia arriba (eje Y)    
+		0.0, 0.0, 0.0,      // hacia que punto mira  (0,0,0)
+		0.0, 1.0, 0.0);      // definimos hacia arriba (eje Y)
 
 	/////////////////
 	///////////
@@ -119,7 +122,7 @@ void CMundo::OnDraw()
 }
 
 void CMundo::OnTimer(int value)
-{	
+{
 	jugador1.Mueve(0.025f);
 	jugador2.Mueve(0.025f);
 	esfera.Mueve(0.025f);
@@ -133,6 +136,17 @@ void CMundo::OnTimer(int value)
 
 	jugador1.Rebota(esfera);
 	jugador2.Rebota(esfera);
+
+         pdatos->esfera = esfera;
+        pdatos->raqueta1 = jugador1;
+
+        if (pdatos->accion == 1)
+                OnKeyboardDown('w', 0, 0);
+        else if (pdatos->accion == -1)
+                OnKeyboardDown('s', 0, 0);
+        else
+                jugador1.velocidad.y = 0;
+
 	if(fondo_izq.Rebota(esfera))
 	{
 		esfera.centro.x=0;
@@ -219,6 +233,27 @@ void CMundo::Init()
       
         puntos1 = 0;
         puntos2 = 0;
+
+
+        int fd_mem = open("/tmp/DATOS_BOT", O_RDWR | O_CREAT | O_TRUNC, 0666);
+        if (fd_mem < 0) {
+                perror("No puede crearse el fichero compartido");
+                exit(1);
+        }
+       
+        if (ftruncate(fd_mem, sizeof(DatosMemCompartida)) < 0) {
+                perror("Error en ftruncate");
+                exit(1);
+        }
+        pdatos = (DatosMemCompartida *) mmap(NULL, sizeof(DatosMemCompartida),
+                        PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, 0);
+        if (pdatos == MAP_FAILED) {
+                perror("Error en mmap");
+                exit(1);
+        }
+     
+        close(fd_mem);
+        pdatos->accion = 0;
 
         fd_logger = open("/tmp/FIFO_LOGGER", O_WRONLY);
         if (fd_logger < 0) {
