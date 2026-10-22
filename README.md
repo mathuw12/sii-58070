@@ -20,3 +20,6 @@ Se crear las bases del proyecto con el Ubuntu y Github, además de añadir movim
 
 Se añade un nuevo programa logger que recibe del juego del tenis la información de cada punto marcado, además de añadir un marcado y una condición de victoria.
 
+## Práctica 3: Comunicación mediante ficheros proyectados en memoria
+
+Se añade un nuevo programa, bot, que controla automáticamente la raqueta del jugador 1.
