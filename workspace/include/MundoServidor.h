@@ -7,6 +7,7 @@
 #define AFX_MUNDO_H__9510340A_3D75_485F_93DC_302A43B8039A__INCLUDED_
 
 #include <vector>
+#include <pthread.h> //Para poder usar el tipo pthread_t
 #include "Plano.h"
 
 #if _MSC_VER > 1000
@@ -40,6 +41,10 @@ public:
 	int puntos2;
         int fd_logger;
         int fd_serv_cli; //FIFO seridor->cliente (coordenadas)
+        int fd_cli_serv; //FIFO cliente->servidor (teclas)
+        pthread_t thid1; //Hilo que recibe las teclas
+
+        void RecibeComandosJugador(); //Metodo que ejecutara el hilo
       //DatosMemCompartida *pdatos;
 };
 

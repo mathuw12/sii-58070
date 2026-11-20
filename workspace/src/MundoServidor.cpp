@@ -16,6 +16,34 @@
 #include <string.h>
 #include <math.h>
 
+// Función que ejecuta el hilo: llama al método del objeto
+void* hilo_comandos(void* d)
+{
+        CMundo* p = (CMundo*) d;
+        p->RecibeComandosJugador();
+        return NULL;
+}
+
+void CMundo::RecibeComandosJugador()
+{
+        // Esperar a que el cliente cree la FIFO y abrirla en lectura
+        while ((fd_cli_serv = open("/tmp/FIFO_CLI_SERV", O_RDONLY)) < 0)
+                usleep(100000);
+
+        while (1) {
+                char cad[100];
+                int n = read(fd_cli_serv, cad, sizeof(cad));
+                if (n <= 0)        // el cliente ha cerrado
+                        break;
+                unsigned char key;
+                sscanf(cad, "%c", &key);
+                if (key == 's') jugador1.velocidad.y = -4;
+                if (key == 'w') jugador1.velocidad.y = 4;
+                if (key == 'l') jugador2.velocidad.y = -4;
+                if (key == 'o') jugador2.velocidad.y = 4;
+        }
+}
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -29,6 +57,7 @@ CMundo::~CMundo()
 {
         close(fd_logger);
         close(fd_serv_cli);  //Hay que cerrar la tuberia con el cliente
+        close(fd_cli_serv);  //Y con el servidor
         unlink("/tmp/FIFO_SERV_CLI"); //Tambien el fichereo relacionado con la tuberia
       //munmap(pdatos, sizeof(DatosMemCompartida));
       //unlink("/tmp/DATOS_BOT");
@@ -271,6 +300,9 @@ void CMundo::Init()
                 exit(1);
 
         }
+
+        unlink("/tmp/FIFO_CLI_SERV"); //Borrar la FIFO de teclas si quedó de una ejecución anterior
+
       //FIFO servidor->cliente
         unlink("/tmp/FIFO_SERV_CLI");
         if (mkfifo("/tmp/FIFO_SERV_CLI", 0600) < 0) {
@@ -282,4 +314,6 @@ void CMundo::Init()
                 perror("No puede abrirse el FIFO servidor-cliente");
                 exit(1);
         }
+
+        pthread_create(&thid1, NULL, hilo_comandos, this); //Hilo que recibe las teclas del cliente
 }

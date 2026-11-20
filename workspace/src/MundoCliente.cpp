@@ -29,6 +29,8 @@ CMundo::~CMundo()
 {
       //close(fd_logger);
         close(fd_serv_cli); //Cerramos la tuberia
+        close(fd_cli_serv); //En ambos sentidos
+        unlink("/tmp/FIFO_CLI_SERV");
         munmap(pdatos, sizeof(DatosMemCompartida));
         unlink("/tmp/DATOS_BOT");
 }
@@ -158,8 +160,8 @@ void CMundo::OnTimer(int value)
                 OnKeyboardDown('w', 0, 0);
         else if (pdatos->accion == -1)
                 OnKeyboardDown('s', 0, 0);
-        else
-                jugador1.velocidad.y = 0;
+      //else         (Ya no sirve proque la velocidad la gestiona el servidor)
+              //jugador1.velocidad.y = 0;
       //La parte de los rebotes lo hace el servidor
       //if(fondo_izq.Rebota(esfera))
       //{
@@ -202,16 +204,21 @@ void CMundo::OnTimer(int value)
 
 void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
 {
-	switch(key)
-	{
+        //El cliente no cmabia velocidades
+        char cad[100];
+        sprintf(cad, "%c", key);
+        write(fd_cli_serv, cad, sizeof(cad));
+
+//	switch(key)
+//	{
 //	case 'a':jugador1.velocidad.x=-1;break;
 //	case 'd':jugador1.velocidad.x=1;break;
-	case 's':jugador1.velocidad.y=-4;break;
-	case 'w':jugador1.velocidad.y=4;break;
-	case 'l':jugador2.velocidad.y=-4;break;
-	case 'o':jugador2.velocidad.y=4;break;
+//	case 's':jugador1.velocidad.y=-4;break;
+//	case 'w':jugador1.velocidad.y=4;break;
+//	case 'l':jugador2.velocidad.y=-4;break;
+//	case 'o':jugador2.velocidad.y=4;break;
 
-	}
+//	}
 }
 
 void CMundo::Init()
@@ -272,6 +279,17 @@ void CMundo::Init()
         fd_serv_cli = open("/tmp/FIFO_SERV_CLI", O_RDONLY);
         if (fd_serv_cli < 0) {
                 perror("No puede abrirse el FIFO servidor-cliente");
+                exit(1);
+        }
+      //FIFO cliente->servidor(la crea el cliente)
+        unlink("/tmp/FIFO_CLI_SERV");
+        if (mkfifo("/tmp/FIFO_CLI_SERV", 0600) < 0) {
+                perror("No puede crearse el FIFO cliente-servidor");
+                exit(1);
+        }
+        fd_cli_serv = open("/tmp/FIFO_CLI_SERV", O_WRONLY);
+        if (fd_cli_serv < 0) {
+                perror("No puede abrirse el FIFO cliente-servidor");
                 exit(1);
         }
 
