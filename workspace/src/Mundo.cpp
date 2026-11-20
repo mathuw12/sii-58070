@@ -137,7 +137,7 @@ void CMundo::OnTimer(int value)
 	jugador1.Rebota(esfera);
 	jugador2.Rebota(esfera);
 
-         pdatos->esfera = esfera;
+        pdatos->esfera = esfera;
         pdatos->raqueta1 = jugador1;
 
         if (pdatos->accion == 1)
