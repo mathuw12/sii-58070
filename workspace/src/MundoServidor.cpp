@@ -28,8 +28,8 @@ CMundo::CMundo()
 CMundo::~CMundo()
 {
         close(fd_logger);
-        munmap(pdatos, sizeof(DatosMemCompartida));
-        unlink("/tmp/DATOS_BOT");
+      //munmap(pdatos, sizeof(DatosMemCompartida));
+      //unlink("/tmp/DATOS_BOT");
 }
 
 void CMundo::InitGL()
@@ -39,7 +39,7 @@ void CMundo::InitGL()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_COLOR_MATERIAL);
-	
+
 	glMatrixMode(GL_PROJECTION);
 	gluPerspective( 40.0, 800/600.0f, 0.1, 150);
 }
@@ -67,9 +67,9 @@ void print(char *mensaje, int x, int y, float r, float g, float b)
 	glColor3f(r,g,b);
 	glRasterPos3f(x, glutGet(GLUT_WINDOW_HEIGHT)-18-y, 0);
 	int len = strlen (mensaje );
-	for (int i = 0; i < len; i++) 
+	for (int i = 0; i < len; i++)
 		glutBitmapCharacter (GLUT_BITMAP_HELVETICA_18, mensaje[i] );
-		
+
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 
@@ -137,15 +137,15 @@ void CMundo::OnTimer(int value)
 	jugador1.Rebota(esfera);
 	jugador2.Rebota(esfera);
 
-        pdatos->esfera = esfera;
-        pdatos->raqueta1 = jugador1;
+      //pdatos->esfera = esfera;
+      //pdatos->raqueta1 = jugador1;
 
-        if (pdatos->accion == 1)
-                OnKeyboardDown('w', 0, 0);
-        else if (pdatos->accion == -1)
-                OnKeyboardDown('s', 0, 0);
-        else
-                jugador1.velocidad.y = 0;
+      //if (pdatos->accion == 1)
+              //OnKeyboardDown('w', 0, 0);
+      //else if (pdatos->accion == -1)
+              //OnKeyboardDown('s', 0, 0);
+      //else
+              //jugador1.velocidad.y = 0;
 
 	if(fondo_izq.Rebota(esfera))
 	{
@@ -154,7 +154,7 @@ void CMundo::OnTimer(int value)
 		esfera.velocidad.x=2+2*rand()/(float)RAND_MAX;
 		esfera.velocidad.y=2+2*rand()/(float)RAND_MAX;
 		puntos2++;
-                
+
                 char cad[100];
                 sprintf(cad, "Jugador 2 marca 1 punto, lleva un total de %d puntos.\n", puntos2);
                 write(fd_logger, cad, strlen(cad));
@@ -230,35 +230,35 @@ void CMundo::Init()
 	jugador2.g=0;
 	jugador2.x1=6;jugador2.y1=-1;
 	jugador2.x2=6;jugador2.y2=1;
-      
+
         puntos1 = 0;
         puntos2 = 0;
 
 
-        int fd_mem = open("/tmp/DATOS_BOT", O_RDWR | O_CREAT | O_TRUNC, 0666);
-        if (fd_mem < 0) {
-                perror("No puede crearse el fichero compartido");
-                exit(1);
-        }
-       
-        if (ftruncate(fd_mem, sizeof(DatosMemCompartida)) < 0) {
-                perror("Error en ftruncate");
-                exit(1);
-        }
-        pdatos = (DatosMemCompartida *) mmap(NULL, sizeof(DatosMemCompartida),
-                        PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, 0);
-        if (pdatos == MAP_FAILED) {
-                perror("Error en mmap");
-                exit(1);
-        }
-     
-        close(fd_mem);
-        pdatos->accion = 0;
+      //int fd_mem = open("/tmp/DATOS_BOT", O_RDWR | O_CREAT | O_TRUNC, 0666);
+      //if (fd_mem < 0) {
+              //perror("No puede crearse el fichero compartido");
+              //exit(1);
+     //}
+
+      //if (ftruncate(fd_mem, sizeof(DatosMemCompartida)) < 0) {
+              //perror("Error en ftruncate");
+              //exit(1);
+      //}
+      //pdatos = (DatosMemCompartida *) mmap(NULL, sizeof(DatosMemCompartida),
+                      //PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, 0);
+      //if (pdatos == MAP_FAILED) {
+              //perror("Error en mmap");
+              //exit(1);
+      //}
+
+      //close(fd_mem);
+      //pdatos->accion = 0;
 
         fd_logger = open("/tmp/FIFO_LOGGER", O_WRONLY);
         if (fd_logger < 0) {
                 perror("No puede abrirse el FIFO");
                 exit(1);
-        
+
         }
 }
