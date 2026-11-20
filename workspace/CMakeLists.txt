@@ -4,6 +4,7 @@ PROJECT (TENIS)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 SET(COMMON_SRCS
+   #src/Mundo.cpp
     src/Esfera.cpp
     src/Plano.cpp
     src/Raqueta.cpp
