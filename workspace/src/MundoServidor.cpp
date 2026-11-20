@@ -2,7 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 #include <fstream>
-#include "Mundo.h"
+#include "MundoServidor.h"
 #include "glut.h"
 
 #include <sys/types.h>
