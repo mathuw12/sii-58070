@@ -23,3 +23,7 @@ Se añade un nuevo programa logger que recibe del juego del tenis la informació
 ## Práctica 3: Comunicación mediante ficheros proyectados en memoria
 
 Se añade un nuevo programa, bot, que controla automáticamente la raqueta del jugador 1.
+
+## Práctica 4: Concurrencia (cliente-servidor con tuberías e hilos)
+
+Se separa el probram en dos: servidor y cliente.
