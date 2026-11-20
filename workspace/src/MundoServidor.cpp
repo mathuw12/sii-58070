@@ -28,6 +28,8 @@ CMundo::CMundo()
 CMundo::~CMundo()
 {
         close(fd_logger);
+        close(fd_serv_cli);  //Hay que cerrar la tuberia con el cliente
+        unlink("/tmp/FIFO_SERV_CLI"); //Tambien el fichereo relacionado con la tuberia
       //munmap(pdatos, sizeof(DatosMemCompartida));
       //unlink("/tmp/DATOS_BOT");
 }
@@ -172,6 +174,14 @@ void CMundo::OnTimer(int value)
                 sprintf(cad, "Jugador 1 marca 1 punto, lleva un total de %d puntos.\n", puntos1);
                 write(fd_logger, cad, strlen(cad));
 	}
+      //Enviar el estado del juego al cliente
+        char datos[200];
+        sprintf(datos, "%f %f %f %f %f %f %f %f %f %f %d %d",
+                esfera.centro.x, esfera.centro.y,
+                jugador1.x1, jugador1.y1, jugador1.x2, jugador1.y2,
+                jugador2.x1, jugador2.y1, jugador2.x2, jugador2.y2,
+                puntos1, puntos2);
+        write(fd_serv_cli, datos, sizeof(datos));
 
         if (puntos1 >= 3 || puntos2 >= 3)
         {
@@ -260,5 +270,16 @@ void CMundo::Init()
                 perror("No puede abrirse el FIFO");
                 exit(1);
 
+        }
+      //FIFO servidor->cliente
+        unlink("/tmp/FIFO_SERV_CLI");
+        if (mkfifo("/tmp/FIFO_SERV_CLI", 0600) < 0) {
+                perror("No puede crearse el FIFO servidor-cliente");
+                exit(1);
+        }
+        fd_serv_cli = open("/tmp/FIFO_SERV_CLI", O_WRONLY);
+        if (fd_serv_cli < 0) {
+                perror("No puede abrirse el FIFO servidor-cliente");
+                exit(1);
         }
 }

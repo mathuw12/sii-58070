@@ -28,6 +28,7 @@ CMundo::CMundo()
 CMundo::~CMundo()
 {
       //close(fd_logger);
+        close(fd_serv_cli); //Cerramos la tuberia
         munmap(pdatos, sizeof(DatosMemCompartida));
         unlink("/tmp/DATOS_BOT");
 }
@@ -123,19 +124,32 @@ void CMundo::OnDraw()
 
 void CMundo::OnTimer(int value)
 {
-	jugador1.Mueve(0.025f);
-	jugador2.Mueve(0.025f);
-	esfera.Mueve(0.025f);
-	int i;
-	for(i=0;i<paredes.size();i++)
-	{
-		paredes[i].Rebota(esfera);
-		paredes[i].Rebota(jugador1);
-		paredes[i].Rebota(jugador2);
-	}
+      //La parte del movimeinto lo hace el servidor
+      //jugador1.Mueve(0.025f);
+      //jugador2.Mueve(0.025f);
+      //esfera.Mueve(0.025f);
+      //int i;
+      //for(i=0;i<paredes.size();i++)
+      //{
+	      //paredes[i].Rebota(esfera);
+	      //paredes[i].Rebota(jugador1);
+	      //paredes[i].Rebota(jugador2);
+      //}
 
-	jugador1.Rebota(esfera);
-	jugador2.Rebota(esfera);
+      //jugador1.Rebota(esfera);
+      //jugador2.Rebota(esfera);
+
+        //Recibir el estado del juego del servidor
+        char datos[200];
+        int n = read(fd_serv_cli, datos, sizeof(datos));
+        if (n <= 0) {          // el servidor ha terminado
+                exit(0);
+        }
+        sscanf(datos, "%f %f %f %f %f %f %f %f %f %f %d %d",
+                &esfera.centro.x, &esfera.centro.y,
+                &jugador1.x1, &jugador1.y1, &jugador1.x2, &jugador1.y2,
+                &jugador2.x1, &jugador2.y1, &jugador2.x2, &jugador2.y2,
+                &puntos1, &puntos2);
 
         pdatos->esfera = esfera;
         pdatos->raqueta1 = jugador1;
@@ -146,32 +160,32 @@ void CMundo::OnTimer(int value)
                 OnKeyboardDown('s', 0, 0);
         else
                 jugador1.velocidad.y = 0;
-
-	if(fondo_izq.Rebota(esfera))
-	{
-		esfera.centro.x=0;
-		esfera.centro.y=rand()/(float)RAND_MAX;
-		esfera.velocidad.x=2+2*rand()/(float)RAND_MAX;
-		esfera.velocidad.y=2+2*rand()/(float)RAND_MAX;
-		puntos2++;
+      //La parte de los rebotes lo hace el servidor
+      //if(fondo_izq.Rebota(esfera))
+      //{
+	      //esfera.centro.x=0;
+	      //esfera.centro.y=rand()/(float)RAND_MAX;
+	      //esfera.velocidad.x=2+2*rand()/(float)RAND_MAX;
+	      //esfera.velocidad.y=2+2*rand()/(float)RAND_MAX;
+	      //puntos2++;
 
               //char cad[100];
               //sprintf(cad, "Jugador 2 marca 1 punto, lleva un total de %d puntos.\n", puntos2);
               //write(fd_logger, cad, strlen(cad));
-	}
+      //}
 
-	if(fondo_dcho.Rebota(esfera))
-	{
-		esfera.centro.x=0;
-		esfera.centro.y=rand()/(float)RAND_MAX;
-		esfera.velocidad.x=-2-2*rand()/(float)RAND_MAX;
-		esfera.velocidad.y=-2-2*rand()/(float)RAND_MAX;
-		puntos1++;
+      //if(fondo_dcho.Rebota(esfera))
+      //{
+	      //esfera.centro.x=0;
+	      //esfera.centro.y=rand()/(float)RAND_MAX;
+              //esfera.velocidad.x=-2-2*rand()/(float)RAND_MAX;
+	      //esfera.velocidad.y=-2-2*rand()/(float)RAND_MAX;
+              //puntos1++;
 
               //char cad[100];
               //sprintf(cad, "Jugador 1 marca 1 punto, lleva un total de %d puntos.\n", puntos1);
               //write(fd_logger, cad, strlen(cad));
-	}
+      //}
 
       //if (puntos1 >= 3 || puntos2 >= 3)
       //{
@@ -254,6 +268,12 @@ void CMundo::Init()
 
         close(fd_mem);
         pdatos->accion = 0;
+      //FIFO servidor->cliente (la crea el servidor)
+        fd_serv_cli = open("/tmp/FIFO_SERV_CLI", O_RDONLY);
+        if (fd_serv_cli < 0) {
+                perror("No puede abrirse el FIFO servidor-cliente");
+                exit(1);
+        }
 
       //fd_logger = open("/tmp/FIFO_LOGGER", O_WRONLY);
       //if (fd_logger < 0) {

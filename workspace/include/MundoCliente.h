@@ -38,6 +38,7 @@ public:
 
 	int puntos1;
 	int puntos2;
+        int fd_serv_cli;   //FIFO servidor->cliente (coordenadas)
       //int fd_logger;
         DatosMemCompartida *pdatos;
 };
